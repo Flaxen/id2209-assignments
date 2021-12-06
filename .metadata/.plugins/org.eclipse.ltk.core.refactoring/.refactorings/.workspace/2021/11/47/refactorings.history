@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;labb3/models/asd.gaml&apos;" deleteContents="false" description="Delete resource &apos;labb3/models/asd.gaml&apos;" element1="/labb3/models/asd.gaml" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1637873524197"/>
+</session>

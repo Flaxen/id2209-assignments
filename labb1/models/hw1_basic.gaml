@@ -158,8 +158,10 @@ species InfoCenter {
 	
 	action returnStore(bool isHungry, bool isThirsty) {
 			
-		loop while:true {
-			ask Store[rnd(0, numberOfStores-1)] {
+		//loop while:true {
+			//ask Store[rnd(0, numberOfStores-1)] {
+		loop counter from: 0 to: length(Store) - 1 {
+			ask sort_by(Store, each distance_to location)[counter] {
 				if((isHungry and self.hasFood) or (isThirsty and self.hasDrink)) { // unsure if gets and or and by its own. if strange behaviour apply more ()()()()()(
 					return self.location;
 				}

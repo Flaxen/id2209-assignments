@@ -169,13 +169,6 @@ species Guest skills: [moving] {
 		do wander;
 	}
 	
-	reflex becomeBad {
-		if(!bad and flip(0.00006)) {
-		bad <- true;
-		write "became bad during runtime!";
-		}
-	}
-	
 	// goes to info center when hungry or thirsty. 
 	// if have correct store in memory and 70% flip we go off memory. 
 	// sometimes want new epxerience -> goto infocenter
@@ -215,7 +208,7 @@ species Guest skills: [moving] {
 		}
 	}
 	
-	reflex enterStore when: !empty(Store at_distance distanceThreshold) {
+	reflex enterStore when: !empty(Store at_distance distanceThreshold) and (isHungry or isThirsty) {
 		ask Store at_distance distanceThreshold {
 			if((myself.isHungry and self.hasFood) or (myself.isThirsty and self.hasDrink)) {
 				
@@ -319,8 +312,9 @@ species InfoCenter {
 		}
 		
 		// otherwise try to recomment stores
-		loop while:true {
-			ask Store[rnd(0, numberOfStores-1)] {
+		loop counter from: 0 to: length(Store) - 1 {
+			ask sort_by(Store, each distance_to location)[counter] {
+				//Store[rnd(0, numberOfStores-1)] {
 				
 				
 				//write "has memorized " + self.storeName + "?: " + memory contains self + " new memory is " + memory;

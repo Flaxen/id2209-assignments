@@ -248,8 +248,10 @@ species InfoCenter {
 		}
 		
 		// otherwise try to recomment stores
-		loop while:true {
-			ask Store[rnd(0, numberOfStores-1)] {
+		//loop while:true {
+			//ask Store[rnd(0, numberOfStores-1)] {
+		loop counter from: 0 to: length(Store) - 1 {
+			ask sort_by(Store, each distance_to location)[counter] {
 				
 				
 				//write "has memorized " + self.storeName + "?: " + memory contains self + " new memory is " + memory;
