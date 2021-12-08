@@ -131,6 +131,7 @@ species Guest skills: [moving, fipa] {
 			if(teams[counter] = nameIn) {
 				return counter;
 			}
+			
 		}
 		
 		write name + ": " +"name not found";

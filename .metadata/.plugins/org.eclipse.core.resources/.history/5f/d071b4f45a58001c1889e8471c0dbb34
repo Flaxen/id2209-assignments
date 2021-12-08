@@ -131,6 +131,7 @@ species Guest skills: [moving, fipa] {
 			if(teams[counter] = nameIn) {
 				return counter;
 			}
+			
 		}
 		
 		write name + ": " +"name not found";
@@ -456,11 +457,8 @@ species Place {
 //      blue: left place due to bad interaction
 //		cyan: fighting outside of the palce
 //
-// squares: bars
+// squares: bars, triangles: campsites
 // 		green: nothing special happening
-//		red: fight occuring in place
-// triangles: campsites
-// 		purple: nothing special happening
 //		red: fight occuring in place
 
 // sets up the experiment

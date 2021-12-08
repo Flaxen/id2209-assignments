@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="loop"/>
+		<item key="selection" value=""/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="yellow"/>
+			<item value="tagetPlace"/>
+			<item value="Bar"/>
+			<item value="targetBar"/>
 			<item value="loop"/>
 			<item value="write name + "/>
 			<item value="write"/>
@@ -19,9 +23,11 @@
 			<item value="reject_proposal"/>
 			<item value="send"/>
 			<item value="&lt;- list"/>
-			<item value="storeColor"/>
 		</list>
 		<list key="replacehistory">
+			<item value="targetPlace"/>
+			<item value="Place"/>
+			<item value="tagetPlace"/>
 			<item value="write name + &quot;: &quot; +"/>
 			<item value="write name + "/>
 			<item value="agentColor"/>

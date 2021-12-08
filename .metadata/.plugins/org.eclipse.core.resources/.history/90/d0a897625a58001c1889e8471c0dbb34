@@ -64,11 +64,9 @@ global {
 			j <- j+1;	
 		}
 	}
+	
 }
 
-// the guests visit different places and interact with each other when places are visited
-// can be affiliated to 5 different football teams
-// different teams affect interactions
 species Guest skills: [moving, fipa] {
 	
 	// get random team from team list
@@ -131,6 +129,7 @@ species Guest skills: [moving, fipa] {
 			if(teams[counter] = nameIn) {
 				return counter;
 			}
+			
 		}
 		
 		write name + ": " +"name not found";
@@ -449,19 +448,6 @@ species Place {
 	
 }
 
-// simulation legend
-// circles: guests
-// 		green: not interacting
-//		orange: on way to friend in place
-//      blue: left place due to bad interaction
-//		cyan: fighting outside of the palce
-//
-// squares: bars
-// 		green: nothing special happening
-//		red: fight occuring in place
-// triangles: campsites
-// 		purple: nothing special happening
-//		red: fight occuring in place
 
 // sets up the experiment
 experiment my_experiment type:gui {
