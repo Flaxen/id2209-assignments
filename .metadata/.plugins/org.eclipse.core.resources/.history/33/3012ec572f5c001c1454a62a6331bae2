@@ -14,16 +14,18 @@ global {
 	
 	// editable variables to change simulation
 	int numberOfBars <- 4;
-	int numberOfCampsites <- 2;
+	int numberOfCampsites <- 4;
 	int numberOfGuests <- 50;
-	float campsiteBonus <- 0.15; // the bonus utility gained from being at a campsite
-	float hatedUtilModificationValue <- -0.1; // affects utility if a guest belonging to a "hated" team is found
+	float campsiteBonus <- 0.0; // the bonus utility gained from being at a campsite 0.15
+	float hatedUtilModificationValue <- -0.0; // affects utility if a guest belonging to a "hated" team is found -0.1
+	float badInteractionThreshold <- 0.55; // draws line where bad interactions are. sets upper range of util ex: [0, badInteractionThreshold] gives a bad interaction 0.38
+	int numberOfTeamAffiliates <- 10; // OBS: has to be numberOfGuests/length(teams)
 	
 	// other variables used during simulations
 	int distanceThreshold <- 2;
 	int numberOfPlaces <- numberOfBars + numberOfCampsites;
-	int numberOfTeams <- 5;
 	list<string> teams <- ["AIK", "DIF", "HIF", "MFF", "IFKG"];
+	int numberOfTeams <- length(teams);
 	list ruleList <- list_with(numberOfTeams, list_with(numberOfTeams, 0.0));
 	int numberOfAttributes <- 6;
 	
@@ -55,6 +57,18 @@ global {
 			
 		}
 		
+		// loop for evenly distributing teams
+		loop counter from: 0 to: length(teams)-1 {
+			loop counter2 from: 0 to: numberOfTeamAffiliates-1 {
+				Guest[counter2 + counter*10].team <- teams[counter];
+			}
+
+		}
+		
+		loop g over: Guest {
+			write "" + g + " team:" + g.team;
+		}
+		
 		// set up relation list
 		// relations are negative diagonally shifted by 1 to the right
 		ruleList[0][length(ruleList)-1] <- hatedUtilModificationValue; 
@@ -64,6 +78,22 @@ global {
 			j <- j+1;	
 		}
 	}
+	
+	// variables for better graph tracking
+	int unimax <- 10;
+	int unimin <- -10;
+	
+	// reflex for updating minmax variables
+	reflex updateMinMax {
+		if (universalHappiness > unimax) {
+			unimax <- universalHappiness;
+		}
+		
+		if(universalHappiness < unimin) {
+			unimin <- universalHappiness;
+		}
+	} 
+	
 }
 
 // the guests visit different places and interact with each other when places are visited
@@ -72,7 +102,8 @@ global {
 species Guest skills: [moving, fipa] {
 	
 	// get random team from team list
-	string team <- teams[rnd(length(teams)-1)];
+	//string team <- teams[rnd(length(teams)-1)];
+	string team;
 	
 	// 3 personal traits
 	float knowledge <- rnd(1.0);
@@ -185,8 +216,8 @@ species Guest skills: [moving, fipa] {
 		notAskedForUtilYet <- false;
 		
 		ask toTalkTo {
-			util <- self.knowledge*myself.knowledgePref + self.personality*myself.personalityPref + self.alcoholTolerence*myself.alcoholTolerencePref + 
-				ruleList[nameToInt(myself.team)][nameToInt(self.team)];
+			util <- self.knowledge*myself.knowledgePref + self.personality*myself.personalityPref + self.alcoholTolerence*myself.alcoholTolerencePref 
+				+ ruleList[nameToInt(myself.team)][nameToInt(self.team)];
 				
 			if(targetPlace.type = "campsite") {
 				util <- util + campsiteBonus;
@@ -205,7 +236,7 @@ species Guest skills: [moving, fipa] {
 		switch util {
 			
 			// range for bad interaction
-			match_between[0.0, 0.3] {
+			match_between[-999.0, badInteractionThreshold] {
 				
 				// bad interaction with someone from "hated" team induces "mega bad" behaviour, affecting the unique rule set of each guest type
 				if(targetIsSpecial) {
@@ -216,7 +247,7 @@ species Guest skills: [moving, fipa] {
 			}
 			
 			// range for good interaction
-			match_between[0.3, 3.5] {
+			match_between[badInteractionThreshold, 999.0] {
 				do good;			
 			}
 		}
@@ -225,7 +256,7 @@ species Guest skills: [moving, fipa] {
 	// good interaction increases happiness. guests stay together until one leaves the bar
 	// guests affiliated with team HIF add each other to their friends list
 	action good {
-		if(team = "HIF" and !(HIF_friends contains toTalkTo)) {
+		if(team = "HIF" and toTalkTo.team = "HIF" and !(HIF_friends contains toTalkTo)) {
 			add toTalkTo to: HIF_friends;
 		}
 		universalHappiness <- universalHappiness + 1;
@@ -251,7 +282,16 @@ species Guest skills: [moving, fipa] {
 			// all other guests in the place will leave the place in fear
 			match("AIK") {
 				write "" + self + ": FIGHT with " + toTalkTo;
-				do fight;
+				startedFight <- time;
+		
+				busy <- true;
+				ask toTalkTo {
+					busy <- true;
+				}
+				
+				ask targetPlace {
+					hasFight <- true;
+				}
 			}
 			
 			// affiliates of DIF leaves the place directly
@@ -264,7 +304,6 @@ species Guest skills: [moving, fipa] {
 					do leavePlace;
 					agentColor <- #blue;
 				}
-
 			}
 			
 			// affiliates of HIF calls all their friends to join them in the place
@@ -316,23 +355,9 @@ species Guest skills: [moving, fipa] {
 		}
 	}
 	
-	// starts a fight between the active guest and toTalkTo
-	action fight {
-		startedFight <- time;
-		
-		busy <- true;
-		ask toTalkTo {
-			busy <- true;
-		}
-		
-		ask targetPlace {
-			hasFight <- true;
-		}
-	}
-	
 	// ends an active fight after 100 cycles
 	// resets values of active guest and toTalkTo in order to proceed with future interactions
-	reflex endFight when: startedFight != 0.0 and time = startedFight+100 and busy {
+	reflex endFight when: startedFight != 0.0 and time >= startedFight+100 and busy {
 		startedFight <- 0.0;
 		busy <- false;
 		
@@ -421,6 +446,8 @@ species Place {
 	rgb defaultColor; // default color used when no activities take place. different depending on type
 	rgb agentColor; // active color, can be default or some color to signal some kind of event
 	
+	float startedFight <- 0.0;
+	bool noTimer <- true;
 	bool hasFight <- false;	// flag for indicating if there is a fight in the place. used for changing color and for making guests flee the place
 	list<Guest> guestList <- []; // list keeping track of what guests are present in the place
 	
@@ -445,6 +472,18 @@ species Place {
 	// adds guest to guest list
 	action addToGuestList(Guest toAdd) {
 		add toAdd to: guestList;
+	}
+	
+	reflex setFightTimer when: hasFight and noTimer {
+		noTimer <- false;
+		startedFight <- time;
+		
+	}
+	
+	reflex stopFight when: hasFight and startedFight != 0.0 and time > startedFight+100 {
+		startedFight <- 0.0;		
+		hasFight <- false;
+		noTimer <- true;
 	}
 	
 }
@@ -476,7 +515,7 @@ experiment my_experiment type:gui {
 		
 		// the display for tracking the universal happiness
 		display infoDisplay {
-			chart "universal happy" type: series x_range:[time-100, time+100] y_range:[universalHappiness-100, universalHappiness+100] {
+			chart "universal happy" type: series x_range:[0, time+10] y_range:[unimin, unimax] {
 				data "data" value: universalHappiness color: #black;
 			}
 		}
